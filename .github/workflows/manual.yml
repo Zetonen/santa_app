@@ -1,0 +1,72 @@
+name: 🐳 Docker Build and Push (Next.js Frontend)
+
+# 1. Дозволи: читання коду та запис у реєстр (для push)
+permissions:
+  contents: read
+  packages: write
+  # Необхідно, якщо ви використовуєте самостійний runner, але для public/GitHub Registry не обов'язково
+  # id-token: write 
+
+on:
+  # Запускаємо вручну з можливістю вказати тег
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker Image Tag (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'latest'
+        type: string
+  # Автоматичний запуск при об'єднанні у гілку 'main'
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    env:
+      # Налаштування змінних оточення
+      DOCKER_IMAGE_NAME: olk005430/santa-app
+      # Фактичний порт, на якому запускається Next.js у контейнері
+      PORT: 3001
+      
+    steps:
+    
+    # 1. Завантажуємо код репозиторію
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Вхід у Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.is_token_for_docker_hub }} # Використовуйте свій актуальний секрет
+        
+    # 3. Формуємо повний тег образу (наприклад, olk005430/santa:v1.0.0)
+    - name: Prepare Image Tag
+      id: prepare_tag
+      run: |
+        # Використовуємо тег з ручного вводу або фіксований тег 'latest' для push
+        TAG=${{ github.event.inputs.tag || 'latest' }}
+        IMAGE_TAG=${{ env.DOCKER_IMAGE_NAME }}:${{ TAG }}
+        echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    # 4. Встановлення Node.js та кешування
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm' # Кешуємо npm залежності
+
+    # 5. Збірка та відправлення образу
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.prepare_tag.outputs.image_tag }}
+        # Передача порту як аргумент APP_PORT
+        build-args: |
+          APP_PORT=${{ env.PORT }}
