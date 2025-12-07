@@ -9,12 +9,18 @@ ENV NODE_ENV=production
 ENV NEXT_OUTPUT_STANDALONE=true
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Копіюємо та встановлюємо залежності для збірки
+# 1. Копіюємо файли залежностей
 COPY package*.json ./
+# 2. Встановлюємо ВСІ залежності (включаючи TypeScript)
+# Next.js для збірки вимагає devDependencies
 RUN npm install
+# RUN npm install --frozen-lockfile # Якщо ви використовуєте package-lock.json
+
+# 3. Копіюємо решту файлів проекту (включаючи next.config.ts)
 COPY . .
 
-# Виконуємо збірку Next.js
+# 4. Виконуємо збірку Next.js
+# Збірка тепер має знайти TypeScript у node_modules
 RUN npm run build 
 
 
@@ -23,23 +29,21 @@ RUN npm run build
 # ------------------------------
 FROM node:20-alpine AS runner
 
-# Використовуємо стандартний порт Next.js
 ENV PORT=3000
 ENV NODE_ENV=production
 
 WORKDIR /app
 
-# Копіюємо Standalone Output
+# 1. Копіюємо Standalone Output, статичні файли
 COPY --from=builder /app/.next/standalone ./
-# Копіюємо статичні активи та build assets
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static 
 
-# Встановлюємо лише production залежності 
+# 2. Встановлюємо лише production залежності для запуску
 COPY package.json ./
 RUN npm install --only=production
 
 EXPOSE 3000
 
-# Запускаємо Next.js Standalone сервер на порту 3000
+# 3. Запускаємо Next.js Standalone сервер
 CMD ["npm", "run", "start"]
