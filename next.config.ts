@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "**",
+        hostname: 'res.cloudinary.com',
+        protocol: 'https',
+        pathname: '/dk3syrsg5/image/upload/**',
       },
     ],
   },
