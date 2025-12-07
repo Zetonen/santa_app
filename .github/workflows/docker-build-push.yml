@@ -1,11 +1,12 @@
 name: 🐳 Docker Build and Push (Next.js Frontend)
 
-# 1. Дозволи: читання коду та запис у реєстр
+# 1. Надаємо дозволи GITHUB_TOKEN для роботи з регістрами
 permissions:
-  contents: read
-  packages: write
+  contents: read # Дозволяє читати код репозиторію
+  packages: write # Потрібен для роботи з контейнерними регістрами (Docker Hub)
 
 on:
+  # Ручний запуск з можливістю вказати тег
   workflow_dispatch:
     inputs:
       tag:
@@ -13,6 +14,7 @@ on:
         required: true
         default: 'latest'
         type: string
+  # Автоматичний запуск при об'єднанні або push у гілку 'main'
   push:
     branches:
       - main
@@ -22,41 +24,49 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # ЗМІНЕНО: Використовуємо santa-app як назву образу
-      DOCKER_IMAGE_NAME: olk005430/santa-app 
+      # Ваше ім'я в Docker Hub та назва репозиторію
+      DOCKER_IMAGE_NAME: olk005430/santa-app
       
     steps:
     
-    # 1. Завантажуємо код репозиторію
+    # 2. Завантажуємо код репозиторію
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. Вхід у Docker Hub
+    # 3. Вхід у Docker Hub за допомогою Секретів
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.is_token_for_docker_hub }}
-        
-    # 3. Формуємо повний тег образу (наприклад, olk005430/santa-app:v1.0.0)
+        password: ${{ secrets.DOCKER_TOKEN }} # Використовуйте коректне ім'я секрету
+
+    # 4. Формуємо повний тег образу (виправлено синтаксис bash/expressions)
     - name: Prepare Image Tag
       id: prepare_tag
       run: |
-        TAG=${{ github.event.inputs.tag || 'latest' }}
-        IMAGE_TAG=${{ env.DOCKER_IMAGE_NAME }}:${{ TAG }}
-        echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+        # Визначаємо тег, використовуючи введений користувачем input (або 'latest' за замовчуванням)
+        TAG="${{ github.event.inputs.tag || 'latest' }}"
+        
+        # Створюємо повний тег образу (наприклад, olk005430/santa-app:latest)
+        FULL_IMAGE_TAG="${{ env.DOCKER_IMAGE_NAME }}:$TAG"
+        
+        # Зберігаємо результат як вихідне значення кроку для подальшого використання
+        echo "image_tag=$FULL_IMAGE_TAG" >> $GITHUB_OUTPUT
+        
+        echo "Prepared image tag: $FULL_IMAGE_TAG"
 
-    # 4. Встановлення Node.js та кешування
+    # 5. Встановлення Node.js та кешування (для швидшої збірки)
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm' 
 
-    # 5. Збірка та відправлення образу
+    # 6. Збірка та відправлення образу
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         push: true
+        # Отримуємо вихідне значення 'image_tag' з кроку 'prepare_tag'
         tags: ${{ steps.prepare_tag.outputs.image_tag }}
