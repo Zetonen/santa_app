@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  devIndicators: {
+  //devIndicators: {
     //buildActivity: false,
-    appIsrStatus: false,
-  },
+  //  appIsrStatus: false,
+  //},
   images: {
     remotePatterns: [
       {
