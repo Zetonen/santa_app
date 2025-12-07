@@ -8,11 +8,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: 'res.cloudinary.com',
         protocol: 'https',
-        pathname: '/dk3syrsg5/image/upload/**',
+        hostname: '**',
       },
     ],
+    
   },
   output: 'standalone',
 };
