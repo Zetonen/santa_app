@@ -4,23 +4,25 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-ENV NODE_ENV=production
+# ВИДАЛЕНО: ENV NODE_ENV=production (щоб гарантувати інсталяцію devDependencies)
+
 # Вмикаємо Standalone режим
 ENV NEXT_OUTPUT_STANDALONE=true
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# 1. Копіюємо файли залежностей
+# 1. Копіюємо файли залежностей (package.json, package-lock.json)
 COPY package*.json ./
-# 2. Встановлюємо ВСІ залежності (включаючи TypeScript)
-# Next.js для збірки вимагає devDependencies
-RUN npm install
-# RUN npm install --frozen-lockfile # Якщо ви використовуєте package-lock.json
+
+# 2. Встановлюємо ВСІ залежності (включаючи typescript, необхідний для next.config.ts)
+# Використовуємо --force, якщо попередні версії npm мали проблеми
+RUN npm install 
+# Або використовуйте npm ci, якщо у вас є package-lock.json
+# RUN npm ci
 
 # 3. Копіюємо решту файлів проекту (включаючи next.config.ts)
 COPY . .
 
 # 4. Виконуємо збірку Next.js
-# Збірка тепер має знайти TypeScript у node_modules
 RUN npm run build 
 
 
@@ -30,6 +32,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 ENV PORT=3000
+# ТУТ ВСТАНОВЛЮЄМО NODE_ENV=production для фінального образу
 ENV NODE_ENV=production
 
 WORKDIR /app
