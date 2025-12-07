@@ -1,11 +1,9 @@
 name: 🐳 Docker Build and Push (Next.js Frontend)
 
-# 1. Дозволи: читання коду та запис у реєстр (для push)
+# 1. Дозволи: читання коду та запис у реєстр
 permissions:
   contents: read
   packages: write
-  # Необхідно, якщо ви використовуєте самостійний runner, але для public/GitHub Registry не обов'язково
-  # id-token: write 
 
 on:
   # Запускаємо вручну з можливістю вказати тег
@@ -26,10 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # Налаштування змінних оточення
-      DOCKER_IMAGE_NAME: olk005430/santa-app
-      # Фактичний порт, на якому запускається Next.js у контейнері
-      PORT: 3001
+      # Ваше ім'я в Docker Hub та назва репозиторію
+      DOCKER_IMAGE_NAME: olk005430/santa
       
     steps:
     
@@ -42,13 +38,12 @@ jobs:
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.is_token_for_docker_hub }} # Використовуйте свій актуальний секрет
+        password: ${{ secrets.is_token_for_docker_hub }}
         
     # 3. Формуємо повний тег образу (наприклад, olk005430/santa:v1.0.0)
     - name: Prepare Image Tag
       id: prepare_tag
       run: |
-        # Використовуємо тег з ручного вводу або фіксований тег 'latest' для push
         TAG=${{ github.event.inputs.tag || 'latest' }}
         IMAGE_TAG=${{ env.DOCKER_IMAGE_NAME }}:${{ TAG }}
         echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -58,7 +53,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm' # Кешуємо npm залежності
+        cache: 'npm' 
 
     # 5. Збірка та відправлення образу
     - name: Build and push Docker image
@@ -67,6 +62,4 @@ jobs:
         context: .
         push: true
         tags: ${{ steps.prepare_tag.outputs.image_tag }}
-        # Передача порту як аргумент APP_PORT
-        build-args: |
-          APP_PORT=${{ env.PORT }}
+        # Build Argument тепер не потрібен, оскільки використовуємо 3000 за замовчуванням
