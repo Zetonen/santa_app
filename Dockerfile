@@ -25,7 +25,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 # Налаштування порту (за замовчуванням 3001)
-ARG APP_PORT=3001
+ARG APP_PORT=3000
 ENV PORT=$APP_PORT
 ENV NODE_ENV=production
 
