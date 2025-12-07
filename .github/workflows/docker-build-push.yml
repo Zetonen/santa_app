@@ -6,7 +6,6 @@ permissions:
   packages: write
 
 on:
-  # Запускаємо вручну з можливістю вказати тег
   workflow_dispatch:
     inputs:
       tag:
@@ -14,7 +13,6 @@ on:
         required: true
         default: 'latest'
         type: string
-  # Автоматичний запуск при об'єднанні у гілку 'main'
   push:
     branches:
       - main
@@ -24,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      # Ваше ім'я в Docker Hub та назва репозиторію
-      DOCKER_IMAGE_NAME: olk005430/santa
+      # ЗМІНЕНО: Використовуємо santa-app як назву образу
+      DOCKER_IMAGE_NAME: olk005430/santa-app 
       
     steps:
     
@@ -40,7 +38,7 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.is_token_for_docker_hub }}
         
-    # 3. Формуємо повний тег образу (наприклад, olk005430/santa:v1.0.0)
+    # 3. Формуємо повний тег образу (наприклад, olk005430/santa-app:v1.0.0)
     - name: Prepare Image Tag
       id: prepare_tag
       run: |
@@ -62,4 +60,3 @@ jobs:
         context: .
         push: true
         tags: ${{ steps.prepare_tag.outputs.image_tag }}
-        # Build Argument тепер не потрібен, оскільки використовуємо 3000 за замовчуванням
