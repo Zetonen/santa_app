@@ -10,7 +10,7 @@ export default function RecipientPage() {
     <>
       <BackgroundEffects />
       <div className="absolute w-[100%] max-w-[800px] flex justify-center items-center p-5">
-        <div className="w-[100%] shadow-xl shadow-gray-700/50 shadow-inner border-4 border-solid border-yellow-500 bg-[#fffffff2] p-10 rounded-2xl text-center">
+        <div className="w-[100%] max-h-[80vh] overflow-scroll shadow-xl shadow-gray-700/50 shadow-inner border-4 border-solid border-yellow-500 bg-[#fffffff2] p-10 rounded-2xl text-center">
           <h1 className="text-[#C53A3A] text-[1.3em] md:text-[2em] drop-shadow-[2px_2px_0_#32CD32] mb-[10px] md:mb-[30px] font-extrabold text-center">
             🎉 Твій Таємний Одержувач 🎉
           </h1>
